@@ -28,7 +28,7 @@ export default function UsersPage() {
     setErrorMsg("");
 
     try {
-      const response = await fetch("http://users_service:8000/api/users");
+      const response = await fetch("http://localhost:8003/api/users");
       const result = await response.json();
 
       if (!response.ok) {
@@ -52,7 +52,7 @@ export default function UsersPage() {
 
     try {
       const response = await fetch(
-        `http://users_service:8000/api/users/${userId}`,
+        `http://http://localhost:8003/api/users/${userId}`,
         {
           method: "DELETE",
         }
@@ -87,7 +87,7 @@ export default function UsersPage() {
 
     try {
       if (mode === "create") {
-        const response = await fetch("http://users_service:8000/api/users", {
+        const response = await fetch("http://localhost:8003/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -114,7 +114,7 @@ export default function UsersPage() {
         if (!selectedUserId) return;
 
         const response = await fetch(
-          `http://users_service:8000/api/users/${selectedUserId}`,
+          `http://localhost:8003/api/users/${selectedUserId}`,
           {
             method: "PUT",
             headers: {
