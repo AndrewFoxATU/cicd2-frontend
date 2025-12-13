@@ -1,6 +1,6 @@
 import { useState } from "react";
 import classes from "./modify-inventory.module.css";
-import GlobalContext from "./store/globalContext";
+import GlobalContext from "../store/globalContext";
 import { useContext } from "react";
 
 const SPEED_RATINGS = [
