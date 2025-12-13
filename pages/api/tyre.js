@@ -7,7 +7,7 @@ async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("http://localhost:8003/api/tyres", {
+    const response = await fetch("http://localhost:8001/api/tyres", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
