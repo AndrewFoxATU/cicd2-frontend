@@ -1,0 +1,28 @@
+/* Full-width layout */
+.layout {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Filters Panel (left) */
+.sidebar {
+    width: 280px;       /* fixed sidebar width */
+    flex-shrink: 0;
+}
+
+/* Table Section (right) */
+.tableArea {
+    flex: 1;            /* <- this makes it stretch across the screen */
+    min-width: 0;       /* prevents overflow errors */
+}
+
+/* Make table wrapper fill width */
+.tableArea > div,
+.tableArea .tableWrapper {
+    width: 100%;
+}

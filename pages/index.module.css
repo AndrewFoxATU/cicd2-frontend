@@ -1,0 +1,100 @@
+.pageWrapper {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authCard {
+  background-color: #1c1c1c;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  width: 420px;
+  color: white;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.modeToggle {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 15px 0 10px;
+}
+
+.modeButton {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid #ffffff44;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.modeButtonActive {
+  background-color: #f0d200;
+  border-color: #f0d200;
+  color: #1c1c1c;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.twoColumn {
+  display: flex;
+  gap: 12px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ffffff44;
+  background-color: #2a2a2a;
+  color: white;
+}
+
+.inputGroup input:focus {
+  border-color: #f0d200;
+  outline: none;
+}
+
+.submitButton {
+  padding: 10px 15px;
+  background-color: transparent;
+  border: 1px solid #ffffff55;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+}
+
+.submitButton:hover {
+  background-color: #f0d200;
+  color: black;
+  border-color: #f0d200;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.success {
+  color: #7dd97c;
+  font-size: 0.85rem;
+}

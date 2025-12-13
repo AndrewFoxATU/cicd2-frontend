@@ -1,0 +1,23 @@
+.mainDiv {
+  display: flex;
+  align-items: center;   /* vertically center the icon */
+  justify-content: center;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+
+.mainSpan {
+  font-size: 1.8rem;
+  color: white;
+  line-height: 1;        /* removes extra vertical spacing */
+  display: flex;         /* fixes SVG misalignment */
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.mainDiv:hover .mainSpan {
+  color: #f0d200;
+}

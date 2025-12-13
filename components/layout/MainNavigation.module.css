@@ -1,0 +1,124 @@
+ .header {
+  width: 100%;
+  height: 70px;
+  background-color: #1c1c1c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.logo span {
+  color: #f0d200;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+.navList {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.navItem a:hover {
+  color: #f0d200;
+}
+
+/* Buttons in nav */
+.navButton {
+  padding: 6px 12px;
+  background-color: transparent;
+  border-radius: 6px;
+  border: 1px solid #ffffff55;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.navButton:hover {
+  background-color: #f0d200;
+  border-color: #f0d200;
+  color: black;
+}
+
+/* INLINE menu revealed by hamburger */
+.popupMenu {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* Profile sidebar */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 40;
+}
+
+.profileSidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: #222;
+  color: white;
+  padding: 20px 24px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileSidebar h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.profileSidebar p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+}
+
+.closeProfile {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ffffff55;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+.closeProfile:hover {
+  background-color: #f0d200;
+  border-color: #f0d200;
+  color: #222;
+}
