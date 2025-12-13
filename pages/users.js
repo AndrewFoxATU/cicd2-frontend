@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import GlobalContext from "./store/globalContext";
+import GlobalContext from "../store/globalContext";
 import classes from "./users.module.css";
 
 export default function UsersPage() {

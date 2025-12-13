@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { useRouter } from "next/router";
-import GlobalContext from "./store/globalContext";
+import GlobalContext from "../store/globalContext";
 import classes from "./index.module.css";
 
 function AuthPage() {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HamMenu from "../generic/HamMenu";
 import { useState, useContext } from 'react';
 import { useRouter } from "next/router";
-import GlobalContext from "../../pages/store/globalContext";
+import GlobalContext from "../../store/globalContext";
 
 function MainNavigation() {
   const router = useRouter();
