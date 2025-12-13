@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import TyreFilters from "../components/tyres/TyreFilters";
 import TyreTable from "../components/tyres/TyreTable";
 import classes from "./tyres.module.css";
-import GlobalContext from "./store/globalContext";
+import GlobalContext from "../store/globalContext";
 
 export default function TyresPage() {
     const { theGlobalObject } = useContext(GlobalContext);
