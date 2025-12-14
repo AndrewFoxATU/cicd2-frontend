@@ -3,7 +3,7 @@ async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { id } = req.body;
+  const { id } = req.query;
 
   try {
     const response = await fetch(`http://users_service:8000/api/users/${id}`,{
