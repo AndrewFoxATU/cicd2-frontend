@@ -1,6 +1,6 @@
 async function handler(req, res) {
   try {
-    const response = await fetch("http://localhost:8003/api/users", {
+    const response = await fetch("http://users_service:8000/api/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
