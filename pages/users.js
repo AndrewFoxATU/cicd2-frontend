@@ -116,7 +116,7 @@ export default function UsersPage() {
         const response = await fetch(
           `/api/update-user/${selectedUserId}`,
           {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
