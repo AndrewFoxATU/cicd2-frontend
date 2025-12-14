@@ -1,5 +1,5 @@
 async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "DELETE") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
