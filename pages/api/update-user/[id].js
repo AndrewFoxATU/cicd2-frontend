@@ -4,7 +4,7 @@ async function handler(req, res) {
   }
 
   const { id } = req.query;
-  const { payload } = req.body;
+  const payload = req.body;
 
   try {
     const response = await fetch(
