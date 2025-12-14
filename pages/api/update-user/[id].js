@@ -1,15 +1,16 @@
 async function handler(req, res) {
-  if (req.method !== "PUT") {
+  if (req.method !== "PATCH") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { id, ...payload } = req.body;
+  const { id } = req.query;
+  const { payload } = req.body;
 
   try {
     const response = await fetch(
       `http://users_service:8000/api/users/${id}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       }
