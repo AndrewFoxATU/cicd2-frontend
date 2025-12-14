@@ -6,7 +6,7 @@ async function handler(req, res) {
   const { id } = req.body;
 
   try {
-    const response = await fetch(`http://localhost:8003/api/users/${id}`,{
+    const response = await fetch(`http://users_service:8000/api/users/${id}`,{
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       }

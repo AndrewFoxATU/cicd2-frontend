@@ -7,7 +7,7 @@ async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `http://localhost:8003/api/users/${id}`,
+      `http://users_service:8000/api/users/${id}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
