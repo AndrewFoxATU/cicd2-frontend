@@ -17,10 +17,12 @@ export default function ModifyInventoryPage() {
   const currentUser = theGlobalObject.currentUser;
 
   const [tyres, setTyres] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const [mode, setMode] = useState("create");
   const [selectedTyreId, setSelectedTyreId] = useState("");
 
-  const [form, setForm] = useState({
+  const [newTyre, setNewTyre] = useState({
     brand: "",
     model: "",
     size: "",
@@ -36,51 +38,33 @@ export default function ModifyInventoryPage() {
     quantity: "",
   });
 
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
   useEffect(() => {
-    loadTyres();
-  }, []);
-
-    // Guard: admin or employee+ only
-  if (
-    !currentUser ||
-    (currentUser.permissions !== "admin" && currentUser.permissions !== "employee+")
-  ) {
-    return (
-      <div className={classes.pageWrapper}>
-        <div className={classes.usersCard}>
-          <h1 className={classes.title}>Users</h1>
-          <p>Access restricted. Admins or Employee+ only.</p>
-        </div>
-      </div>
-    );
-  }
+    if (currentUser && (currentUser.permissions === "admin" || currentUser.permissions === "employee+")) {
+      loadTyres();
+    }
+  }, [currentUser]);
 
   async function loadTyres() {
-    setError("");
-    setMessage("");
-
+    setErrorMsg("");
     try {
-      const res = await fetch("/api/fetchTyres");
-      const result = await res.json();
+      const response = await fetch("/api/fetchTyres");
+      const result = await response.json();
 
-      if (!res.ok) {
-        setError(result.detail || result.error || "Failed to load inventory");
+      if (!response.ok) {
+        setErrorMsg(result.detail || result.error || "Failed to load tyres");
         return;
       }
 
       setTyres(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error(err);
-      setError("Server error");
+      setErrorMsg("Server error");
     }
   }
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
+    setNewTyre((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
@@ -89,17 +73,17 @@ export default function ModifyInventoryPage() {
   function setFormFromTyre(tyre) {
     if (!tyre) return;
 
-    setForm({
-      brand: tyre.brand ?? "",
-      model: tyre.model ?? "",
-      size: tyre.size ?? "",
+    setNewTyre({
+      brand: tyre.brand || "",
+      model: tyre.model || "",
+      size: tyre.size || "",
       load_rate: tyre.load_rate ?? "",
-      speed_rate: tyre.speed_rate ?? "",
-      season: tyre.season ?? "",
-      supplier: tyre.supplier ?? "",
-      fuel_efficiency: tyre.fuel_efficiency ?? "",
+      speed_rate: tyre.speed_rate || "",
+      season: tyre.season || "",
+      supplier: tyre.supplier || "",
+      fuel_efficiency: tyre.fuel_efficiency || "",
       noise_level: tyre.noise_level ?? "",
-      weather_efficiency: tyre.weather_efficiency ?? "",
+      weather_efficiency: tyre.weather_efficiency || "",
       ev_approved: !!tyre.ev_approved,
       cost: tyre.cost ?? "",
       quantity: tyre.quantity ?? "",
@@ -107,82 +91,91 @@ export default function ModifyInventoryPage() {
   }
 
   async function handleDelete(tyreId) {
-    setMessage("");
-    setError("");
+    setErrorMsg("");
 
     try {
-      const res = await fetch(`/api/delete-tyre/${tyreId}`, { method: "DELETE" });
+      const response = await fetch(`/api/delete-tyre/${tyreId}`, {
+        method: "DELETE",
+      });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.error || body.detail || "Failed to delete tyre");
+      if (!response.ok) {
+        const result = await response.json();
+        setErrorMsg(result.detail || result.error || "Failed to delete tyre");
         return;
-      }
-
-      if (selectedTyreId === tyreId) {
-        setSelectedTyreId("");
-        setMode("create");
-        setForm({
-          brand: "",
-          model: "",
-          size: "",
-          load_rate: "",
-          speed_rate: "",
-          season: "",
-          supplier: "",
-          fuel_efficiency: "",
-          noise_level: "",
-          weather_efficiency: "",
-          ev_approved: false,
-          cost: "",
-          quantity: "",
-        });
       }
 
       await loadTyres();
     } catch (err) {
-      console.error("Error deleting tyre:", err);
-      setError("Server error");
+      console.error(err);
+      setErrorMsg("Server error");
     }
+  }
+
+  function buildCreatePayload() {
+    return {
+      brand: newTyre.brand,
+      model: newTyre.model,
+      size: newTyre.size,
+      load_rate: parseInt(newTyre.load_rate, 10),
+      speed_rate: newTyre.speed_rate,
+      season: newTyre.season,
+      supplier: newTyre.supplier,
+      fuel_efficiency: newTyre.fuel_efficiency,
+      noise_level: parseInt(newTyre.noise_level, 10),
+      weather_efficiency: newTyre.weather_efficiency,
+      ev_approved: !!newTyre.ev_approved,
+      cost: parseFloat(newTyre.cost),
+      quantity: parseInt(newTyre.quantity, 10),
+    };
+  }
+
+  function buildPatchPayload() {
+    const payload = {};
+
+    const setIfFilled = (key, value) => {
+      if (value === "" || value === null || value === undefined) return;
+      payload[key] = value;
+    };
+
+    setIfFilled("brand", newTyre.brand);
+    setIfFilled("model", newTyre.model);
+    setIfFilled("size", newTyre.size);
+    setIfFilled("speed_rate", newTyre.speed_rate);
+    setIfFilled("season", newTyre.season);
+    setIfFilled("supplier", newTyre.supplier);
+    setIfFilled("fuel_efficiency", newTyre.fuel_efficiency);
+    setIfFilled("weather_efficiency", newTyre.weather_efficiency);
+
+    payload.ev_approved = !!newTyre.ev_approved;
+
+    if (newTyre.load_rate !== "") payload.load_rate = parseInt(newTyre.load_rate, 10);
+    if (newTyre.noise_level !== "") payload.noise_level = parseInt(newTyre.noise_level, 10);
+    if (newTyre.cost !== "") payload.cost = parseFloat(newTyre.cost);
+    if (newTyre.quantity !== "") payload.quantity = parseInt(newTyre.quantity, 10);
+
+    return payload;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setMessage("");
-    setError("");
-
-    const payload = {
-      brand: form.brand,
-      model: form.model,
-      size: form.size,
-      load_rate: parseInt(form.load_rate, 10),
-      speed_rate: form.speed_rate,
-      season: form.season,
-      supplier: form.supplier,
-      fuel_efficiency: form.fuel_efficiency,
-      noise_level: parseInt(form.noise_level, 10),
-      weather_efficiency: form.weather_efficiency,
-      ev_approved: !!form.ev_approved,
-      cost: parseFloat(form.cost),
-      quantity: parseInt(form.quantity, 10)
-    };
+    setErrorMsg("");
 
     try {
       if (mode === "create") {
-        const res = await fetch("/api/fetchTyres", {
+        const response = await fetch("/api/create-tyre", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(buildCreatePayload()),
         });
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          setError(body.error || body.detail || "Failed to add tyre");
+        const result = await response.json();
+
+        if (!response.ok) {
+          setErrorMsg(result.detail || result.error || "Failed to create tyre");
           return;
         }
 
-        setMessage("Tyre added to inventory.");
-        setForm({
+        setNewTyre({
           brand: "",
           model: "",
           size: "",
@@ -198,151 +191,160 @@ export default function ModifyInventoryPage() {
           quantity: "",
         });
 
+        setSelectedTyreId("");
         await loadTyres();
       } else {
         if (!selectedTyreId) return;
 
-        const res = await fetch(`/api/update-tyre/${selectedTyreId}`, {
+        const response = await fetch(`/api/update-tyre/${selectedTyreId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(buildPatchPayload()),
         });
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          setError(body.error || body.detail || "Failed to update tyre");
+        const result = await response.json();
+
+        if (!response.ok) {
+          setErrorMsg(result.detail || result.error || "Failed to update tyre");
           return;
         }
 
-        setMessage("Tyre updated.");
         await loadTyres();
       }
     } catch (err) {
-      console.error("Error saving tyre:", err);
-      setError("Error saving tyre");
+      console.error(err);
+      setErrorMsg("Server error");
     }
   }
 
+  if (
+    !currentUser ||
+    (currentUser.permissions !== "admin" && currentUser.permissions !== "employee+")
+  ) {
+    return (
+      <div className={classes.pageWrapper}>
+        <div className={classes.usersCard}>
+          <h1 className={classes.title}>Modify Inventory</h1>
+          <p>Access restricted. Admins or Employee+ only.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.pageWrapper}>
-      <div className={classes.card}>
-        <h1 className={classes.title}>Modify Inventory</h1>
-        <p className={classes.subtitle}>
-          {mode === "create" ? "Add a new tyre to the inventory." : "Edit an existing tyre."}
-        </p>
+      <div className={classes.usersGrid}>
+        {/* LEFT: LIST (same as users) */}
+        <div className={classes.usersCard}>
+          <h1 className={classes.title}>Inventory</h1>
 
-        <div className={classes.inputGroup}>
-          <label>Mode</label>
-          <select
-            value={mode}
-            onChange={(e) => {
-              const value = e.target.value;
-              setMode(value);
-              setMessage("");
-              setError("");
+          {errorMsg && <p className={classes.error}>{errorMsg}</p>}
 
-              if (value === "edit" && tyres.length > 0) {
-                const first = tyres[0];
-                setSelectedTyreId(first.id);
-                setFormFromTyre(first);
-              }
-
-              if (value === "create") {
-                setSelectedTyreId("");
-                setForm({
-                  brand: "",
-                  model: "",
-                  size: "",
-                  load_rate: "",
-                  speed_rate: "",
-                  season: "",
-                  supplier: "",
-                  fuel_efficiency: "",
-                  noise_level: "",
-                  weather_efficiency: "",
-                  ev_approved: false,
-                  cost: "",
-                  quantity: "",
-                });
-              }
-            }}
-          >
-            <option value="create">Create</option>
-            <option value="edit">Edit</option>
-          </select>
+          <table className={classes.userTable}>
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Size</th>
+                <th>Qty</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tyres.map((tyre) => (
+                <tr key={tyre.id}>
+                  <td>{tyre.brand}</td>
+                  <td>{tyre.model}</td>
+                  <td>{tyre.size}</td>
+                  <td>{tyre.quantity}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className={classes.deleteButton}
+                      onClick={() => handleDelete(tyre.id)}
+                    >
+                      X
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {mode === "edit" && (
-          <div className={classes.inputGroup}>
-            <label>Tyre to edit</label>
-            <select
-              value={selectedTyreId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setSelectedTyreId(id);
-                const tyre = tyres.find((t) => t.id === id);
-                setFormFromTyre(tyre);
-              }}
-            >
-              <option value="">-- Select tyre --</option>
-              {tyres.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.brand} {t.model} ({t.size})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* RIGHT: FORM (same as users) */}
+        <div className={classes.usersCard}>
+          <h1 className={classes.title}>Add / Edit Tyres</h1>
 
-        {tyres.length > 0 && (
-          <div className={classes.inputGroup}>
-            <label>Inventory</label>
-            <div style={{ overflowX: "auto" }}>
-              <table className={classes.userTable}>
-                <thead>
-                  <tr>
-                    <th>Brand</th>
-                    <th>Model</th>
-                    <th>Size</th>
-                    <th>Qty</th>
-                    <th>Delete</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tyres.map((t) => (
-                    <tr key={t.id}>
-                      <td>{t.brand}</td>
-                      <td>{t.model}</td>
-                      <td>{t.size}</td>
-                      <td>{t.quantity}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className={classes.deleteButton}
-                          onClick={() => handleDelete(t.id)}
-                        >
-                          X
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <form className={classes.form} onSubmit={handleSubmit}>
+            <div className={classes.inputGroup}>
+              <label>Mode</label>
+              <select
+                value={mode}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setMode(value);
+
+                  if (value === "edit" && tyres.length > 0) {
+                    setSelectedTyreId(tyres[0].id);
+                    setFormFromTyre(tyres[0]);
+                  }
+
+                  if (value === "create") {
+                    setSelectedTyreId("");
+                    setNewTyre({
+                      brand: "",
+                      model: "",
+                      size: "",
+                      load_rate: "",
+                      speed_rate: "",
+                      season: "",
+                      supplier: "",
+                      fuel_efficiency: "",
+                      noise_level: "",
+                      weather_efficiency: "",
+                      ev_approved: false,
+                      cost: "",
+                      quantity: "",
+                    });
+                  }
+                }}
+              >
+                <option value="create">Create</option>
+                <option value="edit">Edit</option>
+              </select>
             </div>
-          </div>
-        )}
 
-        <form className={classes.form} onSubmit={handleSubmit}>
-          <div className={classes.grid}>
+            {mode === "edit" && (
+              <div className={classes.inputGroup}>
+                <label>Tyre to edit</label>
+                <select
+                  value={selectedTyreId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedTyreId(id);
+                    const tyre = tyres.find((t) => t.id === id);
+                    setFormFromTyre(tyre);
+                  }}
+                >
+                  <option value="">-- Select tyre --</option>
+                  {tyres.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.brand} {t.model} ({t.size})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* NOTE: required only for create */}
             <div className={classes.inputGroup}>
               <label>Brand</label>
               <input
                 name="brand"
-                value={form.brand}
+                value={newTyre.brand}
                 onChange={handleChange}
-                placeholder="e.g. Michelin, Faroad, Kormoran"
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -350,10 +352,9 @@ export default function ModifyInventoryPage() {
               <label>Model</label>
               <input
                 name="model"
-                value={form.model}
+                value={newTyre.model}
                 onChange={handleChange}
-                placeholder="e.g. Primacy 4, FRD 16, Road Performance"
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -361,10 +362,9 @@ export default function ModifyInventoryPage() {
               <label>Size</label>
               <input
                 name="size"
-                value={form.size}
+                value={newTyre.size}
                 onChange={handleChange}
-                placeholder="e.g. 205/55R16"
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -373,9 +373,9 @@ export default function ModifyInventoryPage() {
               <input
                 name="load_rate"
                 type="number"
-                value={form.load_rate}
+                value={newTyre.load_rate}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -383,15 +383,13 @@ export default function ModifyInventoryPage() {
               <label>Speed rating</label>
               <select
                 name="speed_rate"
-                value={form.speed_rate}
+                value={newTyre.speed_rate}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               >
                 <option value="">Select speed rating</option>
                 {SPEED_RATINGS.map((rate) => (
-                  <option key={rate} value={rate}>
-                    {rate}
-                  </option>
+                  <option key={rate} value={rate}>{rate}</option>
                 ))}
               </select>
             </div>
@@ -400,15 +398,13 @@ export default function ModifyInventoryPage() {
               <label>Season</label>
               <select
                 name="season"
-                value={form.season}
+                value={newTyre.season}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               >
                 <option value="">Select season</option>
                 {SEASONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
@@ -417,10 +413,9 @@ export default function ModifyInventoryPage() {
               <label>Supplier</label>
               <input
                 name="supplier"
-                value={form.supplier}
+                value={newTyre.supplier}
                 onChange={handleChange}
-                placeholder="e.g. KeithRevins, Tractormotors, Michelin PLC"
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -428,15 +423,13 @@ export default function ModifyInventoryPage() {
               <label>Fuel efficiency</label>
               <select
                 name="fuel_efficiency"
-                value={form.fuel_efficiency}
+                value={newTyre.fuel_efficiency}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               >
                 <option value="">Select fuel efficiency</option>
                 {GRADE_VALUES.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
+                  <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>
@@ -446,9 +439,9 @@ export default function ModifyInventoryPage() {
               <input
                 name="noise_level"
                 type="number"
-                value={form.noise_level}
+                value={newTyre.noise_level}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -456,15 +449,13 @@ export default function ModifyInventoryPage() {
               <label>Weather efficiency</label>
               <select
                 name="weather_efficiency"
-                value={form.weather_efficiency}
+                value={newTyre.weather_efficiency}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               >
                 <option value="">Select weather efficiency</option>
                 {GRADE_VALUES.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
+                  <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>
@@ -474,7 +465,7 @@ export default function ModifyInventoryPage() {
                 <input
                   type="checkbox"
                   name="ev_approved"
-                  checked={form.ev_approved}
+                  checked={newTyre.ev_approved}
                   onChange={handleChange}
                 />
                 EV approved
@@ -487,9 +478,9 @@ export default function ModifyInventoryPage() {
                 name="cost"
                 type="number"
                 step="0.01"
-                value={form.cost}
+                value={newTyre.cost}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               />
             </div>
 
@@ -498,20 +489,17 @@ export default function ModifyInventoryPage() {
               <input
                 name="quantity"
                 type="number"
-                value={form.quantity}
+                value={newTyre.quantity}
                 onChange={handleChange}
-                required
+                required={mode === "create"}
               />
             </div>
-          </div>
 
-          {error && <p className={classes.error}>{error}</p>}
-          {message && <p className={classes.success}>{message}</p>}
-
-          <button type="submit" className={classes.submitButton}>
-            {mode === "create" ? "Add Tyre" : "Save Changes"}
-          </button>
-        </form>
+            <button type="submit" className={classes.addButton}>
+              {mode === "create" ? "Add Tyre" : "Save Changes"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

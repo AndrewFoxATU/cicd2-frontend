@@ -24,6 +24,47 @@
   color: #cccccc;
 }
 
+.usersGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.usersCard {
+  background-color: #1c1c1c;
+  color: white;
+  padding: 24px 28px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 900px) {
+  .usersGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.userTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+.userTable th,
+.userTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #ffffff22;
+  text-align: left;
+}
+
+.userTable th {
+  color: #cccccc;
+  font-weight: 600;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -36,7 +77,6 @@
   gap: 12px 16px;
 }
 
-/* Shared styling for input and select */
 .inputGroup,
 .inputGroupCheckbox {
   display: flex;
@@ -85,7 +125,7 @@
   cursor: pointer;
 }
 
-/* Submit button */
+/* === BUTTONS === */
 .submitButton {
   align-self: flex-end;
   padding: 10px 18px;
@@ -103,7 +143,40 @@
   color: black;
 }
 
-/* Messages */
+.addButton {
+  align-self: flex-end;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: 1px solid #ffffff55;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.addButton:hover {
+  background-color: #f0d200;
+  border-color: #f0d200;
+  color: black;
+}
+
+.deleteButton {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ff6b6b55;
+  background: transparent;
+  color: #ff6b6b;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.deleteButton:hover {
+  background: #ff6b6b;
+  color: black;
+  border-color: #ff6b6b;
+}
+
+/* === MESSAGES === */
 .error {
   color: #ff6b6b;
   font-size: 0.85rem;
