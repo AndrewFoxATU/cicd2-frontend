@@ -63,7 +63,7 @@ export default function ModifyInventoryPage() {
     setMessage("");
 
     try {
-      const res = await fetch("/api/tyre");
+      const res = await fetch("/api/tyres");
       const result = await res.json();
 
       if (!res.ok) {
@@ -169,7 +169,7 @@ export default function ModifyInventoryPage() {
 
     try {
       if (mode === "create") {
-        const res = await fetch("/api/tyre", {
+        const res = await fetch("/api/tyres", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
