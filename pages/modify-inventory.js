@@ -111,7 +111,7 @@ export default function ModifyInventoryPage() {
     setError("");
 
     try {
-      const res = await fetch(`/api/tyre/${tyreId}`, { method: "DELETE" });
+      const res = await fetch(`/api/delete-tyre/${tyreId}`, { method: "DELETE" });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -202,7 +202,7 @@ export default function ModifyInventoryPage() {
       } else {
         if (!selectedTyreId) return;
 
-        const res = await fetch(`/api/tyre/${selectedTyreId}`, {
+        const res = await fetch(`/api/update-tyre/${selectedTyreId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
