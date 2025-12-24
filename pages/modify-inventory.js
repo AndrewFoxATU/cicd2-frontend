@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import classes from "./modify-inventory.module.css";
 import GlobalContext from "../store/globalContext";
-import { useContext } from "react";
 
 const SPEED_RATINGS = [
   "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8",
@@ -17,6 +16,9 @@ export default function ModifyInventoryPage() {
   const { theGlobalObject } = useContext(GlobalContext);
   const currentUser = theGlobalObject.currentUser;
 
+  const [tyres, setTyres] = useState([]);
+  const [mode, setMode] = useState("create");
+  const [selectedTyreId, setSelectedTyreId] = useState("");
 
   const [form, setForm] = useState({
     brand: "",
@@ -37,9 +39,15 @@ export default function ModifyInventoryPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-    // Guard: admin or employee+ only
+  useEffect(() => {
+    loadTyres();
+  }, []);
 
-  if (!currentUser || (currentUser.permissions !== "admin" && currentUser.permissions !== "employee+")) {
+    // Guard: admin or employee+ only
+  if (
+    !currentUser ||
+    (currentUser.permissions !== "admin" && currentUser.permissions !== "employee+")
+  ) {
     return (
       <div className={classes.pageWrapper}>
         <div className={classes.usersCard}>
@@ -49,13 +57,93 @@ export default function ModifyInventoryPage() {
       </div>
     );
   }
-  
+
+  async function loadTyres() {
+    setError("");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/tyre");
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.detail || result.error || "Failed to load inventory");
+        return;
+      }
+
+      setTyres(Array.isArray(result) ? result : []);
+    } catch (err) {
+      console.error(err);
+      setError("Server error");
+    }
+  }
+
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  }
+
+  function setFormFromTyre(tyre) {
+    if (!tyre) return;
+
+    setForm({
+      brand: tyre.brand ?? "",
+      model: tyre.model ?? "",
+      size: tyre.size ?? "",
+      load_rate: tyre.load_rate ?? "",
+      speed_rate: tyre.speed_rate ?? "",
+      season: tyre.season ?? "",
+      supplier: tyre.supplier ?? "",
+      fuel_efficiency: tyre.fuel_efficiency ?? "",
+      noise_level: tyre.noise_level ?? "",
+      weather_efficiency: tyre.weather_efficiency ?? "",
+      ev_approved: !!tyre.ev_approved,
+      cost: tyre.cost ?? "",
+      quantity: tyre.quantity ?? "",
+    });
+  }
+
+  async function handleDelete(tyreId) {
+    setMessage("");
+    setError("");
+
+    try {
+      const res = await fetch(`/api/tyre/${tyreId}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || body.detail || "Failed to delete tyre");
+        return;
+      }
+
+      if (selectedTyreId === tyreId) {
+        setSelectedTyreId("");
+        setMode("create");
+        setForm({
+          brand: "",
+          model: "",
+          size: "",
+          load_rate: "",
+          speed_rate: "",
+          season: "",
+          supplier: "",
+          fuel_efficiency: "",
+          noise_level: "",
+          weather_efficiency: "",
+          ev_approved: false,
+          cost: "",
+          quantity: "",
+        });
+      }
+
+      await loadTyres();
+    } catch (err) {
+      console.error("Error deleting tyre:", err);
+      setError("Server error");
+    }
   }
 
   async function handleSubmit(e) {
@@ -80,37 +168,58 @@ export default function ModifyInventoryPage() {
     };
 
     try {
-      const res = await fetch("/api/tyre", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (mode === "create") {
+        const res = await fetch("/api/tyre", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.error || "Failed to add tyre");
-        return;
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error || body.detail || "Failed to add tyre");
+          return;
+        }
+
+        setMessage("Tyre added to inventory.");
+        setForm({
+          brand: "",
+          model: "",
+          size: "",
+          load_rate: "",
+          speed_rate: "",
+          season: "",
+          supplier: "",
+          fuel_efficiency: "",
+          noise_level: "",
+          weather_efficiency: "",
+          ev_approved: false,
+          cost: "",
+          quantity: "",
+        });
+
+        await loadTyres();
+      } else {
+        if (!selectedTyreId) return;
+
+        const res = await fetch(`/api/tyre/${selectedTyreId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error || body.detail || "Failed to update tyre");
+          return;
+        }
+
+        setMessage("Tyre updated.");
+        await loadTyres();
       }
-
-      setMessage("Tyre added to inventory.");
-      setForm({
-        brand: "",
-        model: "",
-        size: "",
-        load_rate: "",
-        speed_rate: "",
-        season: "",
-        supplier: "",
-        fuel_efficiency: "",
-        noise_level: "",
-        weather_efficiency: "",
-        ev_approved: false,
-        cost: "",
-        quantity: "",
-      });
     } catch (err) {
-      console.error("Error adding tyre:", err);
-      setError("Error adding tyre");
+      console.error("Error saving tyre:", err);
+      setError("Error saving tyre");
     }
   }
 
@@ -119,7 +228,110 @@ export default function ModifyInventoryPage() {
     <div className={classes.pageWrapper}>
       <div className={classes.card}>
         <h1 className={classes.title}>Modify Inventory</h1>
-        <p className={classes.subtitle}>Add a new tyre to the inventory.</p>
+        <p className={classes.subtitle}>
+          {mode === "create" ? "Add a new tyre to the inventory." : "Edit an existing tyre."}
+        </p>
+
+        <div className={classes.inputGroup}>
+          <label>Mode</label>
+          <select
+            value={mode}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMode(value);
+              setMessage("");
+              setError("");
+
+              if (value === "edit" && tyres.length > 0) {
+                const first = tyres[0];
+                setSelectedTyreId(first.id);
+                setFormFromTyre(first);
+              }
+
+              if (value === "create") {
+                setSelectedTyreId("");
+                setForm({
+                  brand: "",
+                  model: "",
+                  size: "",
+                  load_rate: "",
+                  speed_rate: "",
+                  season: "",
+                  supplier: "",
+                  fuel_efficiency: "",
+                  noise_level: "",
+                  weather_efficiency: "",
+                  ev_approved: false,
+                  cost: "",
+                  quantity: "",
+                });
+              }
+            }}
+          >
+            <option value="create">Create</option>
+            <option value="edit">Edit</option>
+          </select>
+        </div>
+
+        {mode === "edit" && (
+          <div className={classes.inputGroup}>
+            <label>Tyre to edit</label>
+            <select
+              value={selectedTyreId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedTyreId(id);
+                const tyre = tyres.find((t) => t.id === id);
+                setFormFromTyre(tyre);
+              }}
+            >
+              <option value="">-- Select tyre --</option>
+              {tyres.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.brand} {t.model} ({t.size})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {tyres.length > 0 && (
+          <div className={classes.inputGroup}>
+            <label>Inventory</label>
+            <div style={{ overflowX: "auto" }}>
+              <table className={classes.userTable}>
+                <thead>
+                  <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Size</th>
+                    <th>Qty</th>
+                    <th>Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tyres.map((t) => (
+                    <tr key={t.id}>
+                      <td>{t.brand}</td>
+                      <td>{t.model}</td>
+                      <td>{t.size}</td>
+                      <td>{t.quantity}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className={classes.deleteButton}
+                          onClick={() => handleDelete(t.id)}
+                        >
+                          X
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <form className={classes.form} onSubmit={handleSubmit}>
           <div className={classes.grid}>
@@ -173,7 +385,6 @@ export default function ModifyInventoryPage() {
                 name="speed_rate"
                 value={form.speed_rate}
                 onChange={handleChange}
-                placeholder="e.g. KeithRevins, Tractormotors, Michelin PLC"
                 required
               >
                 <option value="">Select speed rating</option>
@@ -298,7 +509,7 @@ export default function ModifyInventoryPage() {
           {message && <p className={classes.success}>{message}</p>}
 
           <button type="submit" className={classes.submitButton}>
-            Add Tyre
+            {mode === "create" ? "Add Tyre" : "Save Changes"}
           </button>
         </form>
       </div>
