@@ -40,12 +40,7 @@ export default function TyreTable({
 		<div className={classes.tableWrapper}>
 			<table className={classes.table}>
 				<thead>
-					<tr
-						key={t.id}
-						className={classes.bodyRow}
-						onClick={() => onRowClick(t)}
-					>
-
+					<tr className={classes.headRow}>
 						{headers.map((h) => (
 							<th
 								key={h.key}
@@ -60,7 +55,11 @@ export default function TyreTable({
 				</thead>
 				<tbody>
 					{tyres.map((t) => (
-						<tr key={t.id} className={classes.bodyRow}>
+						<tr
+							key={t.id}
+							className={classes.bodyRow}
+							onClick={() => onRowClick(t)}
+						>
 							<td className={classes.bodyCell}>{t.brand}</td>
 							<td className={classes.bodyCell}>{t.model}</td>
 							<td className={classes.bodyCell}>{t.size}</td>
