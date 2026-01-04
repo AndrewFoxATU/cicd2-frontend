@@ -4,6 +4,7 @@ export default function TyreTable({
 	tyres,
 	onSort,
 	sortConfig = { key: null, direction: null },
+	onRowClick
 }) {
 	if (!tyres || tyres.length === 0) {
 		return (
@@ -39,7 +40,12 @@ export default function TyreTable({
 		<div className={classes.tableWrapper}>
 			<table className={classes.table}>
 				<thead>
-					<tr className={classes.headRow}>
+					<tr
+						key={t.id}
+						className={classes.bodyRow}
+						onClick={() => onRowClick(t)}
+					>
+
 						{headers.map((h) => (
 							<th
 								key={h.key}

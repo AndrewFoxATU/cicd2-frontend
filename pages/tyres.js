@@ -3,6 +3,7 @@ import TyreFilters from "../components/tyres/TyreFilters";
 import TyreTable from "../components/tyres/TyreTable";
 import classes from "./tyres.module.css";
 import GlobalContext from "../store/globalContext";
+import SellPopup from "../components/tyres/SellPopup";
 
 export default function TyresPage() {
     const { theGlobalObject } = useContext(GlobalContext);
@@ -11,6 +12,8 @@ export default function TyresPage() {
     const [initialTyres, setInitialTyres] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+    const [sellPopupOpen, setSellPopupOpen] = useState(false);
+    const [selectedTyre, setSelectedTyre] = useState(null);
 
 
 
@@ -82,6 +85,29 @@ export default function TyresPage() {
         setFiltered(sorted);
     }
 
+    function openSellPopup(tyre) {
+        setSelectedTyre(tyre);
+        setSellPopupOpen(true);
+    }
+
+    function closeSellPopup() {
+        setSellPopupOpen(false);
+        setSelectedTyre(null);
+    }
+
+    function handleSaleSuccess(qtySold) {
+        const tyreId = selectedTyre.id;
+
+        setInitialTyres((prev) =>
+            prev.map((t) => (t.id === tyreId ? { ...t, quantity: t.quantity - qtySold } : t))
+        );
+
+        setFiltered((prev) =>
+            prev.map((t) => (t.id === tyreId ? { ...t, quantity: t.quantity - qtySold } : t))
+        );
+    }
+
+
     return (
         <div className={classes.layout}>
             <div className={classes.sidebar}>
@@ -89,8 +115,17 @@ export default function TyresPage() {
             </div>
 
             <div className={classes.tableArea}>
-                <TyreTable tyres={filtered} onSort={handleSort} sortConfig={sortConfig} />
+                <TyreTable tyres={filtered} onSort={handleSort} sortConfig={sortConfig} onRowClick={openSellPopup} />
             </div>
+        <SellPopup
+            show={sellPopupOpen}
+            onClose={closeSellPopup}
+            tyre={selectedTyre}
+            currentUser={currentUser}
+            onSuccess={handleSaleSuccess}
+        />
         </div>
+        
+
     );
 }
