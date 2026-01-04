@@ -46,7 +46,7 @@ function SellPopup(props) {
 		setIsLoading(true);
 
 		try {
-			const response = await fetch("/api/sell", {
+			const response = await fetch("/pages/api/sell", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
