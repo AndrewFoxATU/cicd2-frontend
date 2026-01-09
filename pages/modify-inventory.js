@@ -20,8 +20,9 @@ export default function ModifyInventoryPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [mode, setMode] = useState("create");
-  const [selectedTyreId, setSelectedTyreId] = useState("");
 
+  const [selectedTyreId, setSelectedTyreId] = useState(null);
+  const [currentTyre, setCurrentTyre] = useState(null);
   const [newTyre, setNewTyre] = useState({
     brand: "",
     model: "",
@@ -33,13 +34,16 @@ export default function ModifyInventoryPage() {
     fuel_efficiency: "",
     noise_level: "",
     weather_efficiency: "",
-    ev_approved: false,
+    ev_approved: null,
     cost: "",
     quantity: "",
   });
 
   useEffect(() => {
-    if (currentUser && (currentUser.permissions === "admin" || currentUser.permissions === "employee+")) {
+    if (
+      currentUser &&
+      (currentUser.permissions === "admin" || currentUser.permissions === "employee+")
+    ) {
       loadTyres();
     }
   }, [currentUser]);
@@ -64,6 +68,7 @@ export default function ModifyInventoryPage() {
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
+    if (name === "ev_approved") return;
     setNewTyre((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -84,7 +89,7 @@ export default function ModifyInventoryPage() {
       fuel_efficiency: tyre.fuel_efficiency || "",
       noise_level: tyre.noise_level ?? "",
       weather_efficiency: tyre.weather_efficiency || "",
-      ev_approved: !!tyre.ev_approved,
+      ev_approved: null,
       cost: tyre.cost ?? "",
       quantity: tyre.quantity ?? "",
     });
@@ -146,12 +151,13 @@ export default function ModifyInventoryPage() {
     setIfFilled("fuel_efficiency", newTyre.fuel_efficiency);
     setIfFilled("weather_efficiency", newTyre.weather_efficiency);
 
-    payload.ev_approved = !!newTyre.ev_approved;
-
     if (newTyre.load_rate !== "") payload.load_rate = parseInt(newTyre.load_rate, 10);
     if (newTyre.noise_level !== "") payload.noise_level = parseInt(newTyre.noise_level, 10);
     if (newTyre.cost !== "") payload.cost = parseFloat(newTyre.cost);
     if (newTyre.quantity !== "") payload.quantity = parseInt(newTyre.quantity, 10);
+    if (newTyre.ev_approved !== null && newTyre.ev_approved !== undefined) {
+      payload.ev_approved = !!newTyre.ev_approved;
+    }
 
     return payload;
   }
@@ -191,7 +197,8 @@ export default function ModifyInventoryPage() {
           quantity: "",
         });
 
-        setSelectedTyreId("");
+        setSelectedTyreId(null);
+        setCurrentTyre(null);
         await loadTyres();
       } else {
         if (!selectedTyreId) return;
@@ -205,7 +212,12 @@ export default function ModifyInventoryPage() {
         const result = await response.json();
 
         if (!response.ok) {
-          setErrorMsg(result.detail || result.error || "Failed to update tyre");
+          setErrorMsg(
+            result.detail ||
+              result.error ||
+              result.upstream_body?.detail?.[0]?.msg ||
+              "Failed to update tyre"
+          );
           return;
         }
 
@@ -231,10 +243,15 @@ export default function ModifyInventoryPage() {
     );
   }
 
+  const evChecked =
+    mode === "edit"
+      ? (newTyre.ev_approved !== null ? !!newTyre.ev_approved : !!currentTyre?.ev_approved)
+      : !!newTyre.ev_approved;
+
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.usersGrid}>
-        {/* LEFT: LIST (same as users) */}
+        {/* LEFT: LIST */}
         <div className={classes.usersCard}>
           <h1 className={classes.title}>Inventory</h1>
 
@@ -272,7 +289,7 @@ export default function ModifyInventoryPage() {
           </table>
         </div>
 
-        {/* RIGHT: FORM (same as users) */}
+        {/* RIGHT: FORM */}
         <div className={classes.usersCard}>
           <h1 className={classes.title}>Add / Edit Tyres</h1>
 
@@ -286,12 +303,15 @@ export default function ModifyInventoryPage() {
                   setMode(value);
 
                   if (value === "edit" && tyres.length > 0) {
-                    setSelectedTyreId(tyres[0].id);
-                    setFormFromTyre(tyres[0]);
+                    const first = tyres[0];
+                    setSelectedTyreId(first.id);
+                    setCurrentTyre(first);
+                    setFormFromTyre(first); // sets ev_approved = null
                   }
 
                   if (value === "create") {
-                    setSelectedTyreId("");
+                    setSelectedTyreId(null);
+                    setCurrentTyre(null);
                     setNewTyre({
                       brand: "",
                       model: "",
@@ -319,12 +339,15 @@ export default function ModifyInventoryPage() {
               <div className={classes.inputGroup}>
                 <label>Tyre to edit</label>
                 <select
-                  value={selectedTyreId}
+                  value={selectedTyreId ?? ""}
                   onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedTyreId(id);
+                    const id = Number(e.target.value);
+                    setSelectedTyreId(Number.isFinite(id) ? id : null);
+
                     const tyre = tyres.find((t) => t.id === id);
-                    setFormFromTyre(tyre);
+                    setCurrentTyre(tyre || null);
+
+                    if (tyre) setFormFromTyre(tyre);
                   }}
                 >
                   <option value="">-- Select tyre --</option>
@@ -337,7 +360,6 @@ export default function ModifyInventoryPage() {
               </div>
             )}
 
-            {/* NOTE: required only for create */}
             <div className={classes.inputGroup}>
               <label>Brand</label>
               <input
@@ -460,13 +482,22 @@ export default function ModifyInventoryPage() {
               </select>
             </div>
 
+            {/* EV approved checkbox: auto-ticks based on current tyre in edit mode */}
             <div className={classes.inputGroupCheckbox}>
               <label>
                 <input
                   type="checkbox"
                   name="ev_approved"
-                  checked={newTyre.ev_approved}
-                  onChange={handleChange}
+                  checked={evChecked}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setNewTyre((prev) => ({
+                      ...prev,
+                      // create mode: store boolean
+                      // edit mode: store boolean (and no longer "null", meaning user changed it)
+                      ev_approved: checked,
+                    }));
+                  }}
                 />
                 EV approved
               </label>
