@@ -8,7 +8,7 @@ const SPEED_RATINGS = [
   "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "Y", "ZR"
 ];
 
-const SEASONS = ["Summer", "Winter", "All Season"];
+const SEASONS = ["summer", "winter", "all season"];
 
 const GRADE_VALUES = ["A", "B", "C", "D", "E"];
 
