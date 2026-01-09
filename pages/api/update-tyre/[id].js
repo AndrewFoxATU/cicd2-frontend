@@ -7,19 +7,27 @@ async function handler(req, res) {
   const payload = req.body;
 
   try {
-    const response = await fetch(
-        `http://tyres_service:8000/api/tyres/${id}`, 
-        {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        }
-    );
+    const response = await fetch(`http://tyres_service:8000/api/tyres/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
     if (!response.ok) {
-      return res
-        .status(response.status)
-        .json({ error: `Upstream error: ${response.statusText}` });
+      const text = await response.text();
+      let upstreamBody;
+      try {
+        upstreamBody = JSON.parse(text);
+      } catch {
+        upstreamBody = text;
+      }
+
+      return res.status(response.status).json({
+        error: "Upstream error",
+        upstream_status: response.status,
+        upstream_statusText: response.statusText,
+        upstream_body: upstreamBody,
+      });
     }
 
     const result = await response.json();
