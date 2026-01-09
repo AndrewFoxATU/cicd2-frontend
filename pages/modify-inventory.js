@@ -168,7 +168,7 @@ export default function ModifyInventoryPage() {
 
     try {
       if (mode === "create") {
-        const response = await fetch("/api/create-tyre", {
+        const response = await fetch("/api/tyre", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(buildCreatePayload()),
